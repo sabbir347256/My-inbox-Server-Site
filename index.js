@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, Timestamp } = require('mongodb');
 const cors = require('cors');
 require("dotenv").config();
 const stripe = require('stripe')(process.env.SECRET_KEY);
@@ -30,30 +30,137 @@ async function run() {
     // await client.db("admin").command({ ping: 1 });
 
     const AllPost = client.db('My_Inbox').collection('addpost');
+    const AllUserPayment = client.db('My_Inbox').collection('paymentUser');
+    const userCollection = client.db('My_Inbox').collection('usercollection');
 
     app.get('/getaddpost', async (req, res) => {
       const cursor = AllPost.find();
       const result = await cursor.toArray();
       res.send(result);
     })
+
+    app.get('/getaddpost/:email', async (req, res) => {
+      const email = req.body.email;
+      const query = { email: (email) };
+      const cursor = AllPost.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.get('/users', async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
+    app.get('/paymentUser/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await AllUserPayment.findOne({email})
+      res.send(result);
+    })
+
+    app.get('/user/:email',async (req,res) => {
+      const email = req.params.email;
+      const result = await userCollection.findOne({email})
+      res.send(result);
+    })
+
+
+    app.patch('/users/update/:email', async (req,res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const query = {email} ;
+      const updatedoc = {
+        $set: {
+          ...user, timestamp: Date.now()
+        }
+      }
+      const result = await userCollection.updatedoc(query,updatedoc);
+      res.send(result);
+    })
+
+
+    app.put('/user', async (req, res) => {
+      const user = req.body;
+      const query = { email: user?.email }
+      const isExit = await userCollection.findOne(query)
+      if (isExit) {
+        if (user.status === 'Requested') {
+          const result = await userCollection.updateOne(query, {
+            $set: {
+              status: user?.status
+            }
+          })
+          res.send(result);
+        } else {
+          return res.send(isExit);
+        }
+      }
+
+      const options = { upsert: true }
+      const updatedoc = {
+        $set: {
+          ...user,
+          timestamp: Date.now()
+        }
+      }
+      const result = await userCollection.updateOne(query, updatedoc, options)
+      res.send(result);
+    })
+
+    app.put('/payment', async (req, res) => {
+      const user = req.body;
+      const query = { 
+        email: user?.email,
+        role : user?.role
+       }
+      const isExit = await AllUserPayment.insertOne(query)
+      if (isExit) {
+        if (user.status === 'succeeded') {
+          const result = await AllUserPayment.updateOne(query, {
+            $set: {
+              status: user?.status
+            }
+          })
+          res.send(result);
+        } else {
+          return res.send(isExit);
+        }
+      }
+
+      const options = { upsert: true }
+      const updatedoc = {
+        $set: {
+          ...user,
+          timestamp: Date.now()
+        }
+      }
+      const result = await AllUserPayment.updateOne(query, updatedoc, options)
+      res.send(result);
+    })
+
+
     app.post('/addpost', async (req, res) => {
       const user = req.body;
       const result = await AllPost.insertOne(user);
       res.send(result);
     })
+    app.put('/payment', async (req, res) => {
+      const user = req.body;
+      const result = await AllUserPayment.insertOne(user);
+      res.send(result);
+    })
 
-    app.post('/create-payment-intent', async (req,res) => {
-      const {price} = req.body;
-      const amount = parseInt(price * 100); 
+    app.post('/create-payment-intent', async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
 
       const paymentIntent = await stripe.paymentIntents.create({
-        amount : amount ,
-        currency : 'usd',
-        payment_method_types : ['card']
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
       });
 
       res.send({
-        clientSecret : paymentIntent.client_secret
+        clientSecret: paymentIntent.client_secret
       })
 
     })
@@ -71,9 +178,9 @@ run().catch(console.dir);
 
 
 app.get('/', async (req, res) => {
-    res.send('assignment 12 site is running');
-  })
-  
-  app.listen(port, () => {
-    console.log(`this server is running : ${port}`)
-  })
+  res.send('assignment 12 site is running');
+})
+
+app.listen(port, () => {
+  console.log(`this server is running : ${port}`)
+})
