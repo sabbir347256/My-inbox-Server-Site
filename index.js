@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion, Timestamp } = require('mongodb');
+const { MongoClient, ServerApiVersion, Timestamp, ObjectId } = require('mongodb');
 const cors = require('cors');
 require("dotenv").config();
 const stripe = require('stripe')(process.env.SECRET_KEY);
@@ -7,7 +7,16 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 
-app.use(cors());
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://my-inbox-c638f.web.app",
+      "https://my-inbox-c638f.firebaseapp.com"
+    ]
+  })
+);
 app.use(express.json());
 
 
@@ -79,7 +88,7 @@ async function run() {
           ...user, timestamp: Date.now()
         }
       }
-      const result = await userCollection.updatedoc(query,updatedoc);
+      const result = await userCollection.updateOne(query,updatedoc);
       res.send(result);
     })
 
@@ -176,6 +185,13 @@ async function run() {
 
     })
 
+
+    app.delete('/deletePost/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await AllPost.deleteOne(query);
+      res.send(result);
+    })
 
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
