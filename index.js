@@ -42,6 +42,7 @@ async function run() {
     const AllUserPayment = client.db('My_Inbox').collection('paymentUser');
     const userCollection = client.db('My_Inbox').collection('usercollection');
     const userComment = client.db('My_Inbox').collection('userComment');
+    const showAllReport = client.db('My_Inbox').collection('showallreport');
 
     app.get('/getaddpost', async (req, res) => {
       const cursor = AllPost.find();
@@ -50,6 +51,11 @@ async function run() {
     })
     app.get('/comment', async (req, res) => {
       const cursor = userComment.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    app.get('/showallreport', async (req, res) => {
+      const cursor = showAllReport.find();
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -156,6 +162,11 @@ async function run() {
     app.post('/addpost', async (req, res) => {
       const user = req.body;
       const result = await AllPost.insertOne(user);
+      res.send(result);
+    })
+    app.post('/showallreport', async (req, res) => {
+      const user = req.body;
+      const result = await showAllReport.insertOne(user);
       res.send(result);
     })
     app.post('/comment', async (req, res) => {
