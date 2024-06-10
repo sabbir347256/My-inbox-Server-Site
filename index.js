@@ -35,34 +35,33 @@ const client = new MongoClient(uri, {
   }
 });
 
-const logger = (req, res, next) => {
-  console.log('log : info', req.method, req.url);
-  next();
-}
+// const logger = (req, res, next) => {
+//   console.log('log : info', req.method, req.url);
+//   next();
+// }
 
-const tokenVerify = (req, res, next) => {
-  const token = req?.cookies?.token;
-  // console.log('token in the middleware',token);
+// const tokenVerify = (req, res, next) => {
+//   const token = req?.cookies?.token;
+//   // console.log('token in the middleware',token);
 
-  if (!token) {
-    return res.status(401).send({ message: 'unauthorized access' })
-  }
-  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
-    if (err) {
-      return res.status(401).send({ message: 'unauthorized access' })
-    }
-    req.user = decoded;
-    next();
-  })
+//   if (!token) {
+//     return res.status(401).send({ message: 'unauthorized access' })
+//   }
+//   jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+//     if (err) {
+//       return res.status(401).send({ message: 'unauthorized access' })
+//     }
+//     req.user = decoded;
+//     next();
+//   })
 
-}
+// }
 
 const cookieOption = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
 };
-
 
 async function run() {
   try {
@@ -77,6 +76,7 @@ async function run() {
     const userComment = client.db('My_Inbox').collection('userComment');
     const showAllReport = client.db('My_Inbox').collection('showallreport');
     const announcement = client.db('My_Inbox').collection('announcement');
+    const registerUser = client.db('My_Inbox').collection('registerUser');
 
 
     app.post('/jwt', async (req, res) => {
@@ -98,6 +98,11 @@ async function run() {
 
     app.get('/getaddpost', async (req, res) => {
       const cursor = AllPost.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    app.get('/announcement', async (req, res) => {
+      const cursor = announcement.find();
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -216,6 +221,7 @@ async function run() {
       const result = await AllPost.insertOne(user);
       res.send(result);
     })
+
     app.post('/announcement', async (req, res) => {
       const user = req.body;
       const result = await announcement.insertOne(user);
