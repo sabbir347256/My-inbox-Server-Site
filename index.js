@@ -16,7 +16,8 @@ app.use(
       "http://localhost:5173",
       "https://my-inbox-c638f.web.app",
       "https://my-inbox-c638f.firebaseapp.com"
-    ]
+    ],
+    credentials: true
   })
 );
 app.use(express.json());
