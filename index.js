@@ -105,7 +105,12 @@ async function run() {
       res.send({count});
     })
     app.get('/getaddpost', async (req, res) => {
-      const cursor = AllPost.find();
+      const search = req.query.search;
+      let query = {}
+      if(search){
+        query = {inputField : search}
+      }
+      const cursor = AllPost.find(query);
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -130,8 +135,8 @@ async function run() {
     })
 
     app.get('/getaddpost/:email', async (req, res) => {
-      const email = req.body.email;
-      const query = { email: (email) };
+      const email = req.params.email;
+      const query = { email: email };
       const cursor = AllPost.find(query);
       const result = await cursor.toArray();
       res.send(result);
