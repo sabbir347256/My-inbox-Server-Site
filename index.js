@@ -99,6 +99,10 @@ async function run() {
       const count = await userCollection.estimatedDocumentCount();
       res.send({count});
     })
+    app.get('/reportCount',async (req,res) => {
+      const count = await showAllReport.estimatedDocumentCount();
+      res.send({count});
+    })
     app.get('/getaddpost', async (req, res) => {
       const cursor = AllPost.find();
       const result = await cursor.toArray();
@@ -115,8 +119,12 @@ async function run() {
       res.send(result);
     })
     app.get('/showallreport', async (req, res) => {
-      const cursor = showAllReport.find();
-      const result = await cursor.toArray();
+      const page = parseInt(req.query.page)
+      const size = parseInt(req.query.size)
+      const result = await showAllReport.find()
+      .skip(page * size)
+      .limit(size)
+      .toArray();
       res.send(result);
     })
 
@@ -129,7 +137,12 @@ async function run() {
     })
 
     app.get('/users', async (req, res) => {
-      const result = await userCollection.find().toArray();
+      const page = parseInt(req.query.page)
+      const size = parseInt(req.query.size)
+      const result = await userCollection.find()
+      .skip(page * size)
+      .limit(size)
+      .toArray();
       res.send(result);
     })
     app.get('/paymentUser/:email', async (req, res) => {
