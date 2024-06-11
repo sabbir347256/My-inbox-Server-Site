@@ -76,7 +76,6 @@ async function run() {
     const userComment = client.db('My_Inbox').collection('userComment');
     const showAllReport = client.db('My_Inbox').collection('showallreport');
     const announcement = client.db('My_Inbox').collection('announcement');
-    const registerUser = client.db('My_Inbox').collection('registerUser');
 
 
     app.post('/jwt', async (req, res) => {
@@ -96,6 +95,10 @@ async function run() {
 
 
 
+    app.get('/userCount',async (req,res) => {
+      const count = await userCollection.estimatedDocumentCount();
+      res.send({count});
+    })
     app.get('/getaddpost', async (req, res) => {
       const cursor = AllPost.find();
       const result = await cursor.toArray();
