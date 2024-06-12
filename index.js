@@ -151,7 +151,7 @@ async function run() {
       .toArray();
       res.send(result);
     })
-    app.get('/paymentUse/:email', async (req, res) => {
+    app.get('/paymentUser/:email', async (req, res) => {
       const email = req.params.email;
       const result = await AllUserPayment.findOne({email})
       res.send(result);
